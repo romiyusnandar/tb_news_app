@@ -1,0 +1,17 @@
+flutter_native_splash:
+  color: "#E0E0E0"
+  image: assets/images/news_light.png
+
+  color_dark: "#212121"
+  image_dark: assets/images/news_dark.png
+
+  android_12:
+    color: "#E0E0E0"
+    image: assets/images/news_light.png
+
+    color_dark: "#212121"
+    image_dark: assets/images/news_dark.png
+
+  android: true
+  ios: true
+  web: false
