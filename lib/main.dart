@@ -1,8 +1,10 @@
 import 'package:berita/pages/home_page.dart';
+import 'package:berita/pages/onboarding.dart';
 import 'package:berita/utils/theme/theme.dart';
 import 'package:berita/utils/theme/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -26,8 +28,8 @@ class MyApp extends StatelessWidget {
       FlutterNativeSplash.remove();
     });
 
-    return MaterialApp(
-      home: const HomePage(),
+    return GetMaterialApp(
+      home: const OnboardingPage(),
       theme: Provider.of<ThemeProvider>(context).themeData,
     );
   }
