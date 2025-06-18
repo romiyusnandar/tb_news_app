@@ -1,0 +1,53 @@
+name: Build Apk
+
+on:
+  push:
+    branches:
+      - new-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.1'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: |
+          flutter build apk --release \
+          --target-platform android-arm64 \
+          --split-per-abi \
+          --obfuscate \
+          --split-debug-info=./build/debug-info
+
+      - name: Get last commit SHA
+        id: get_sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        run: |
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/my_berita-${{ steps.get_sha.outputs.sha_short }}.apk
+
+      - name: Generate release timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Upload to GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/app/outputs/flutter-apk/my_berita-${{ steps.get_sha.outputs.sha_short }}.apk"
+          tag: v${{ steps.timestamp.outputs.timestamp }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true
