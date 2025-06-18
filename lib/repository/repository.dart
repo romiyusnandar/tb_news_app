@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:my_berita/model/article/article_response.dart';
 import 'package:my_berita/model/source/source_response.dart';
 
+// Using news api v2
 class NewsRepository {
   static const String baseUrl = "https://newsapi.org/v2";
   final String apiKey = "d0d335cc1074458e9c2b29a1d23ca37c";

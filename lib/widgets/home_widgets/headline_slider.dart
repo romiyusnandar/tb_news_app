@@ -71,10 +71,10 @@ class _HeadlineSliderWidgetState extends State<HeadlineSliderWidget> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(8.0)),
                 shape: BoxShape.rectangle,
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: Utility.getImageComponent(article.urlToImage),
-                )
+                // image: DecorationImage(
+                //   fit: BoxFit.cover,
+                //   image: Utility.getImageComponent(article.urlToImage),
+                // )
               ),
             ),
             Container(
@@ -113,11 +113,11 @@ class _HeadlineSliderWidgetState extends State<HeadlineSliderWidget> {
                 ),
               )
             ),
-            Positioned(
-              bottom: 10.0,
-              left: 10.0,
-              child: Text(article.source.name!, style: TextStyle(color: Colors.white54, fontSize: 9.0),),
-            ),
+            // Positioned(
+            //   bottom: 10.0,
+            //   left: 10.0,
+            //   child: Text(article.source.name!, style: TextStyle(color: Colors.white54, fontSize: 9.0),),
+            // ),
             Positioned(
               bottom: 10.0,
               right: 10.0,

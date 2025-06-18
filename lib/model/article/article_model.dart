@@ -1,48 +1,45 @@
-import 'dart:convert';
-
+import 'package:my_berita/model/author/author_model.dart';
 import 'package:my_berita/model/source/source_model.dart';
+import 'package:my_berita/utils/utility.dart';
 
 class Article {
-  final Source source;
-  final String? author;
-  final String? content;
-  final String description;
-  final DateTime publishedAt;
+  final String id;
   final String title;
-  final String url;
-  final String urlToImage;
+  final String category;
+  final DateTime publishedAt;
+  final String? readTime;
+  final String? imageUrl;
+  final bool isTrending;
+  final List<String> tags;
+  final String? content;
+  final Author author;
 
   Article({
-    required this.source,
-    this.author,
-    this.content,
-    required this.description,
-    required this.publishedAt,
+    required this.id,
     required this.title,
-    required this.url,
-    required this.urlToImage,
+    required this.category,
+    required this.publishedAt,
+    this.readTime,
+    this.imageUrl,
+    required this.isTrending,
+    required this.tags,
+    this.content,
+    required this.author,
   });
 
-  Article.fromJson(Map<String, dynamic> json)
-      : source = Source.fromJson(json['source']),
-        author = json['author'],
-        content = json['content'] ?? '',
-        description = json['description'] ?? '',
-        publishedAt = DateTime.parse(json['publishedAt']),
-        title = json['title'],
-        url = json['url'],
-        urlToImage = json['urlToImage'] ?? '';
-
-  @override
-  List<Object> get props => [
-    source,
-    author ?? '',
-    content ?? '',
-    description,
-    publishedAt,
-    title,
-    url,
-    urlToImage ?? ''
-  ];
+  factory Article.fromJson(Map<String, dynamic> json) {
+   return Article(
+     id: json['id'] ?? '',
+     title: json['title'] ?? '',
+     category: json['category'] ?? '',
+     publishedAt: Utility.parseCustomDate(json['publishedAt']),
+     readTime: json['readTime'],
+     imageUrl: json['imageUrl'],
+     isTrending: json['isTrending'] ?? false,
+     tags: List<String>.from(json['tags'] ?? []),
+     content: json['content'],
+     author: Author.fromJson(json['author']),
+   );
+  }
 }
 
