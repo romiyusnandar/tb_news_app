@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_berita/widgets/home_widgets/headline_slider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,11 +11,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Home Screen',
-        style: TextStyle(color: Colors.white),
-      ),
-    );
+    return ListView(children: [HeadlineSliderWidget()],);
   }
 }
