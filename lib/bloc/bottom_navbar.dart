@@ -2,8 +2,7 @@ import "dart:async";
 
 enum NavBarItem {
   home,
-  sources,
-  search,
+  bookmark,
   profile,
 }
 
@@ -20,12 +19,9 @@ class BottomNavBarBloc {
         _navBarItemController.sink.add(NavBarItem.home);
         break;
       case 1:
-        _navBarItemController.sink.add(NavBarItem.sources);
+        _navBarItemController.sink.add(NavBarItem.bookmark);
         break;
       case 2:
-        _navBarItemController.sink.add(NavBarItem.search);
-        break;
-      case 3:
         _navBarItemController.sink.add(NavBarItem.profile);
         break;
       default:

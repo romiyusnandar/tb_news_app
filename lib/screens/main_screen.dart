@@ -3,8 +3,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:my_berita/bloc/bottom_navbar.dart';
 import 'package:my_berita/screens/tabs/home_screen.dart';
-import 'package:my_berita/screens/tabs/search_screen.dart';
-import 'package:my_berita/screens/tabs/setting_screen.dart';
+import 'package:my_berita/screens/tabs/profile_screen.dart';
 import 'package:my_berita/screens/tabs/source_screen.dart';
 import 'package:my_berita/utils/theme.dart' as theme;
 
@@ -43,12 +42,10 @@ class _MainScreenState extends State<MainScreen> {
             switch (snapshot.data!) {
               case NavBarItem.home:
                 return HomeScreen();
-              case NavBarItem.sources:
+              case NavBarItem.bookmark:
                 return SourceScreen();
-              case NavBarItem.search:
-                return SearchScreen();
               case NavBarItem.profile:
-                return SettingScreen();
+                return ProfileScreen();
             }
           },
         ),
@@ -87,19 +84,14 @@ class _MainScreenState extends State<MainScreen> {
                     activeIcon: Icon(EvaIcons.home)
                   ),
                   BottomNavigationBarItem(
-                      label: "Sources",
+                      label: "Bookmark",
                       icon: Icon(EvaIcons.gridOutline),
                       activeIcon: Icon(EvaIcons.grid),
                   ),
                   BottomNavigationBarItem(
-                      label: "Search",
-                      icon: Icon(EvaIcons.searchOutline),
-                      activeIcon: Icon(EvaIcons.search),
-                  ),
-                  BottomNavigationBarItem(
                       label: "Settings",
-                      icon: Icon(EvaIcons.settings2Outline),
-                      activeIcon: Icon(EvaIcons.settings2),
+                      icon: Icon(EvaIcons.personOutline),
+                      activeIcon: Icon(EvaIcons.person),
                   ),
                 ],
               ),
