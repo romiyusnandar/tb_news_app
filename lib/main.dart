@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:my_berita/screens/auth/login_screen.dart';
-import 'package:my_berita/screens/main_screen.dart';
 import 'package:my_berita/screens/splash_screen.dart';
 
 void main() {

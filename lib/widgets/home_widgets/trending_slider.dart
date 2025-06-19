@@ -236,7 +236,7 @@ class _ShimmerSliderCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              bottom: 60.0, // Posisi sedikit di atas info penulis
+              bottom: 60.0,
               left: 15.0,
               right: 15.0,
               child: Column(

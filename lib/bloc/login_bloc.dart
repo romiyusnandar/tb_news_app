@@ -14,6 +14,10 @@ class LoginBloc {
     }
   }
 
+  void drainStream() {
+    _subject.add(LoginResponse.withError(''));
+  }
+
   dispose() {
     _subject.close();
   }

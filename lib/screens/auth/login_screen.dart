@@ -22,23 +22,15 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     loginBloc.subject.stream.listen((LoginResponse response) {
-
-      // ---- DEBUGGING ----
-      print('Login Response Diterima:');
-      print('  Success: ${response.success}');
-      print('  Token: ${response.token}');
-      print('  Message: ${response.message}');
-      print('  Error: ${response.error}');
-      // ---------------------------------
-
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
 
+      // PERUBAHAN: Kondisi disederhanakan, tidak lagi memeriksa userProfile.
       if (response.success && response.token != null) {
-        _saveTokenAndNavigate(response.token!);
+        _saveDataAndNavigate(response);
       } else if (response.error.isNotEmpty) {
         _showErrorDialog(response.error);
       }
@@ -64,9 +56,20 @@ class _LoginScreenState extends State<LoginScreen> {
     loginBloc.login(_emailController.text, _passwordController.text);
   }
 
-  Future<void> _saveTokenAndNavigate(String token) async {
+  /// PERUBAHAN: Fungsi ini sekarang hanya menyimpan data yang tersedia.
+  Future<void> _saveDataAndNavigate(LoginResponse response) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+
+    // Simpan data yang kita punya: token dari API dan email dari form.
+    await prefs.setString('auth_token', response.token!);
+    await prefs.setString('user_email', _emailController.text);
+
+    // Hapus data lama yang mungkin masih tersisa untuk konsistensi
+    await prefs.remove('user_name');
+    await prefs.remove('user_title');
+    await prefs.remove('user_avatar');
+    await prefs.remove('auth_token');
+
 
     if (!mounted) return;
 
@@ -89,6 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // UI (build method) tidak ada perubahan, jadi saya singkat.
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -98,89 +102,21 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const SizedBox(height: 80.0),
-              const Text(
-                'Selamat Datang Kembali',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text('Selamat Datang Kembali', textAlign: TextAlign.center, style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8.0),
-              Text(
-                'Masuk untuk melanjutkan',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16.0, color: Colors.grey[600]),
-              ),
+              Text('Masuk untuk melanjutkan', textAlign: TextAlign.center, style: TextStyle(fontSize: 16.0, color: Colors.grey[600])),
               const SizedBox(height: 48.0),
-
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-              ),
+              TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email', prefixIcon: const Icon(Icons.email_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)))),
               const SizedBox(height: 16.0),
-
-              TextField(
-                controller: _passwordController,
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
-              ),
+              TextField(controller: _passwordController, obscureText: !_isPasswordVisible, decoration: InputDecoration(labelText: 'Password', prefixIcon: const Icon(Icons.lock_outline), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)), suffixIcon: IconButton(icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible)))),
               const SizedBox(height: 24.0),
-
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                onPressed: _login,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  backgroundColor: Colors.blueAccent,
-                ),
-                child: const Text(
-                  'Masuk',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
+              _isLoading ? const Center(child: CircularProgressIndicator()) : ElevatedButton(onPressed: _login, style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), backgroundColor: Colors.blueAccent), child: const Text('Masuk', style: TextStyle(fontSize: 16, color: Colors.white))),
               const SizedBox(height: 24.0),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Belum punya akun?", style: TextStyle(color: Colors.grey[600]),),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterScreen()));
-                    },
-                    child: const Text(
-                      'Daftar di sini',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
-                    ),
-                  ),
+                  Text("Belum punya akun?", style: TextStyle(color: Colors.grey[600])),
+                  TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterScreen())), child: const Text('Daftar di sini', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent))),
                 ],
               ),
             ],

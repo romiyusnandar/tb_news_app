@@ -10,16 +10,31 @@ class AuthRepository {
   final Dio _dio = Dio();
 
   Future<LoginResponse> login(String email, String password) async {
-    final data = {'email': email, 'password': password};
-    final options = Options(headers: {'Accept': 'application/json'});
-
     try {
-      Response response = await _dio.post(loginUrl, data: data, options: options);
-      return LoginResponse.fromJson(response.data);
+      Response loginResponse = await _dio.post(loginUrl, data: {
+        'email': email,
+        'password': password,
+      });
+
+      if (loginResponse.data['success'] != true || loginResponse.data['data']['token'] == null) {
+        return LoginResponse.withError(loginResponse.data['message'] ?? 'Login gagal, token tidak ditemukan.');
+      }
+
+      final token = loginResponse.data['data']['token'];
+
+      return LoginResponse(
+        success: true,
+        message: "Login berhasil!",
+        token: token,
+        userProfile: null,
+        error: '',
+      );
+
     } on DioException catch (e) {
-      final errorMessage = e.response?.data?['message'] ?? "Email atau password salah.";
-      return LoginResponse.withError("Error ${e.response?.statusCode}: $errorMessage");
+      final errorMessage = e.response?.data?['message'] ?? 'Email atau password salah.';
+      return LoginResponse.withError(errorMessage);
     } catch (e) {
+      print("Error di AuthRepository: $e");
       return LoginResponse.withError("Terjadi kesalahan yang tidak terduga.");
     }
   }

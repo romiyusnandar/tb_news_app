@@ -4,7 +4,6 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:my_berita/bloc/get_top_headlines.dart';
 import 'package:my_berita/model/article/article_model.dart';
 import 'package:my_berita/model/article/article_response.dart';
-import 'package:my_berita/utils/utility.dart';
 
 class HeadlineSliderWidget extends StatefulWidget {
   const HeadlineSliderWidget({super.key});
