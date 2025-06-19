@@ -24,7 +24,7 @@ class NewsRepositorySecond {
     }
   }
 
-  Future<ArticleResponse> getAllNews({int page = 1, int limit = 20}) async {
+  Future<ArticleResponse> getAllNews({int page = 1, int limit = 10}) async {
     final params = {
       'page': page,
       'limit': limit,
@@ -32,11 +32,24 @@ class NewsRepositorySecond {
 
     try {
       Response response = await _dio.get(getAllNewsUrl, queryParameters: params, options: _apiOptions);
+
+      // ================== LOG DIAGNOSTIK ==================
+      print("✅ Success calling: ${response.requestOptions.uri}");
+      // ======================================================
+
       return ArticleResponse.fromJson(response.data);
     } on DioException catch (e) {
+      // ================== LOG DIAGNOSTIK ==================
+      if (e.response != null) {
+        print("❌ Error calling: ${e.response?.requestOptions.uri}");
+      }
+      print("❌ DioException: ${e.message}");
+      // ======================================================
+
       final apiErrorMessage = e.response?.data?['message'] ?? 'Gagal memuat daftar berita.';
       return ArticleResponse.withError("Error ${e.response?.statusCode}: $apiErrorMessage");
     } catch (e) {
+      print("❌ Unexpected Error: $e");
       return ArticleResponse.withError("Terjadi kesalahan yang tidak terduga.");
     }
   }

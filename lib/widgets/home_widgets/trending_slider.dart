@@ -26,14 +26,10 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> {
     return StreamBuilder<ArticleResponse>(
       stream: getTrendingNewsBloc.subject.stream,
       builder: (context, AsyncSnapshot<ArticleResponse> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        } else if (snapshot.hasData) {
+        if (snapshot.hasData) {
+          if (snapshot.data!.error == "loading") {
+            return _buildShimmerSlider();
+          }
           if (snapshot.data!.error.isNotEmpty || !snapshot.data!.success) {
             return _buildErrorWidget(snapshot.data!.error);
           }
@@ -41,7 +37,7 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> {
         } else if (snapshot.hasError) {
           return _buildErrorWidget(snapshot.error.toString());
         } else {
-          return const SizedBox.shrink();
+          return _buildShimmerSlider();
         }
       },
     );
@@ -59,6 +55,21 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> {
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerSlider() {
+    return CarouselSlider.builder(
+      itemCount: 3,
+      itemBuilder: (context, index, realIndex) {
+        return const _ShimmerSliderCard();
+      },
+      options: CarouselOptions(
+        autoPlay: false,
+        enableInfiniteScroll: false,
+        height: 230.0,
+        viewportFraction: 0.8,
       ),
     );
   }
@@ -184,5 +195,70 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> {
 
   String timeUntil(DateTime dateTime) {
     return timeago.format(dateTime, locale: 'id', allowFromNow: true);
+  }
+}
+
+class _ShimmerSliderCard extends StatelessWidget {
+  const _ShimmerSliderCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF2C3E50),
+          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              bottom: 15.0,
+              left: 15.0,
+              right: 15.0,
+              child: Row(
+                children: [
+                  Container(
+                    height: 28,
+                    width: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    height: 12,
+                    width: 100,
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              bottom: 60.0, // Posisi sedikit di atas info penulis
+              left: 15.0,
+              right: 15.0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 16,
+                    width: double.infinity,
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 16,
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
