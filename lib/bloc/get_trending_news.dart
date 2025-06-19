@@ -8,6 +8,8 @@ class GetTrendingNewsBloc {
   BehaviorSubject<ArticleResponse>();
 
   getTrendingNews() async {
+    _subject.sink.add(ArticleResponse.withError("loading"));
+
     ArticleResponse response = await _repository.getTrendingNews();
     if (!_subject.isClosed) {
       _subject.sink.add(response);

@@ -7,9 +7,12 @@ class GetAllNewsBloc {
   final BehaviorSubject<ArticleResponse> _subject =
   BehaviorSubject<ArticleResponse>();
 
-  getAllNews() async {
-    _subject.sink.add(ArticleResponse.withError("loading"));
-    ArticleResponse response = await _repository.getAllNews();
+  getAllNews({int page = 1}) async {
+    if (page == 1) {
+      _subject.sink.add(ArticleResponse.withError("loading"));
+    }
+
+    ArticleResponse response = await _repository.getAllNews(page: page);
     if (!_subject.isClosed) {
       _subject.sink.add(response);
     }

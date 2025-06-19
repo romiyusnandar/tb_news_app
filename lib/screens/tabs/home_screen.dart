@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:my_berita/bloc/get_all_news_bloc.dart';
+import 'package:my_berita/bloc/get_trending_news.dart';
 import 'package:my_berita/model/article/article_model.dart';
 import 'package:my_berita/model/article/article_response.dart';
 import 'package:my_berita/widgets/home_widgets/article_card.dart';
@@ -46,12 +47,15 @@ class _HomeScreenState extends State<HomeScreen> {
           if (response.articles.isEmpty) {
             _hasReachedMax = true;
           } else {
-            _articles.addAll(response.articles);
+            var newArticles = response.articles.where((article) => !_articles.any((a) => a.id == article.id));
+            _articles.addAll(newArticles);
           }
+        } else if (response.error == "loading") {
+          _currentError = "loading";
         }
       });
     });
-    getAllNewsBloc.getAllNews();
+    getAllNewsBloc.getAllNews(page: 1);
   }
 
   @override
@@ -70,8 +74,20 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoadingMore = true;
       });
       _currentPage++;
-      getAllNewsBloc.getAllNews();
+      getAllNewsBloc.getAllNews(page: _currentPage);
     }
+  }
+
+  Future<void> _onRefresh() async {
+    setState(() {
+      _articles.clear();
+      _currentPage = 1;
+      _hasReachedMax = false;
+      _currentError = '';
+      _isLoadingMore = false;
+    });
+    getTrendingNewsBloc.getTrendingNews();
+    getAllNewsBloc.getAllNews(page: 1);
   }
 
   Future<void> _loadBookmarks() async {
@@ -97,24 +113,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 16.0, bottom: 12.0),
-          child: Text("Trending Saat Ini", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-        ),
-        const TrendingSliderWidget(),
-        const SizedBox(height: 24),
-        _buildActionButtons(),
-        const SizedBox(height: 24),
-        const Padding(
-          padding: EdgeInsets.only(left: 16.0, bottom: 12.0),
-          child: Text("Berita Terbaru", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-        ),
-        _buildAllNewsSection(),
-      ],
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: Colors.white,
+      backgroundColor: Colors.blueAccent,
+      child: ListView(
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0, bottom: 12.0),
+            child: Text("Trending Saat Ini", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          ),
+          const TrendingSliderWidget(),
+          const SizedBox(height: 24),
+          _buildActionButtons(),
+          const SizedBox(height: 24),
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0, bottom: 12.0),
+            child: Text("Berita Terbaru", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          ),
+          _buildAllNewsSection(),
+        ],
+      ),
     );
   }
 
@@ -150,10 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAllNewsSection() {
-    if (_articles.isEmpty && _isLoadingMore) {
-      return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)));
+    if (_articles.isEmpty && _currentError == 'loading') {
+      return _buildShimmerList();
     }
-    if (_currentError.isNotEmpty) {
+    if (_currentError.isNotEmpty && _currentError != 'loading') {
       return Center(child: Text("Gagal memuat berita: $_currentError", style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center));
     }
     return Column(
@@ -168,10 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
               article: article,
               isBookmarked: _bookmarkedIds.contains(article.id),
               onBookmarkPressed: () => _toggleBookmark(article.id),
-              onTap: () {
-                // Navigate to article detail page
-                _showSnackbar('Navigasi ke halaman detail berita: ${article.title}');
-              },
+              onTap: () { /* TODO: Navigasi ke detail berita */ },
             );
           },
         ),
@@ -181,6 +199,78 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
           ),
       ],
+    );
+  }
+
+  Widget _buildShimmerList() {
+    return ListView.builder(
+      itemCount: 5,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) => const _ShimmerArticleCard(),
+    );
+  }
+}
+
+class _ShimmerArticleCard extends StatelessWidget {
+  const _ShimmerArticleCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2C3E50),
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 100,
+            width: 120,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+          const SizedBox(width: 12.0),
+          Expanded(
+            child: SizedBox(
+              height: 100,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    height: 16,
+                    width: double.infinity,
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                  Container(
+                    height: 16,
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                  const Spacer(),
+                  Container(
+                    height: 10,
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    height: 10,
+                    width: double.infinity,
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 }
