@@ -84,8 +84,10 @@ class _HomeScreenState extends State<HomeScreen> {
       _currentError = '';
       _isLoadingMore = false;
     });
-    getTrendingNewsBloc.getTrendingNews();
-    getAllNewsBloc.getAllNews(page: 1);
+    await Future.wait<void>([
+      getAllNewsBloc.getAllNews(page: _currentPage),
+      getTrendingNewsBloc.getTrendingNews(),
+    ]);
   }
 
   Future<void> _loadBookmarks() async {
@@ -185,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return _buildShimmerList();
     }
     if (_currentError.isNotEmpty && _currentError != 'loading') {
-      return Center(child: Text("Gagal memuat berita: $_currentError", style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center));
+      return _buildFullPageError(_currentError);
     }
     return Column(
       children: [
@@ -209,6 +211,40 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
           ),
       ],
+    );
+  }
+
+  Widget _buildFullPageError(String error) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.4,
+      alignment: Alignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off, color: Colors.white54, size: 60),
+            const SizedBox(height: 16),
+            Text(
+              "Gagal memuat berita",
+              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              error,
+              style: const TextStyle(color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Tarik layar ke bawah untuk mencoba lagi",
+              style: TextStyle(color: Colors.white54, fontStyle: FontStyle.italic),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
