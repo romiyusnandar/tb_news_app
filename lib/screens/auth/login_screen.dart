@@ -28,8 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
 
-      // PERUBAHAN: Kondisi disederhanakan, tidak lagi memeriksa userProfile.
-      if (response.success && response.token != null) {
+      // Kondisi ini sekarang akan terpenuhi jika API merespons dengan benar.
+      if (response.success && response.token != null && response.userProfile != null) {
         _saveDataAndNavigate(response);
       } else if (response.error.isNotEmpty) {
         _showErrorDialog(response.error);
@@ -49,27 +49,22 @@ class _LoginScreenState extends State<LoginScreen> {
       _showErrorDialog("Email dan password tidak boleh kosong.");
       return;
     }
-
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
     loginBloc.login(_emailController.text, _passwordController.text);
   }
 
-  /// PERUBAHAN: Fungsi ini sekarang hanya menyimpan data yang tersedia.
+  /// PERUBAHAN UTAMA: Menyimpan semua data pengguna ke SharedPreferences.
   Future<void> _saveDataAndNavigate(LoginResponse response) async {
     final prefs = await SharedPreferences.getInstance();
+    final user = response.userProfile!;
 
-    // Simpan data yang kita punya: token dari API dan email dari form.
+    // Simpan semua data pengguna yang diterima dari API.
     await prefs.setString('auth_token', response.token!);
-    await prefs.setString('user_email', _emailController.text);
-
-    // Hapus data lama yang mungkin masih tersisa untuk konsistensi
-    await prefs.remove('user_name');
-    await prefs.remove('user_title');
-    await prefs.remove('user_avatar');
-    await prefs.remove('auth_token');
-
+    await prefs.setString('user_id', user.id);
+    await prefs.setString('user_name', user.name);
+    await prefs.setString('user_email', user.email);
+    await prefs.setString('user_title', user.title);
+    await prefs.setString('user_avatar', user.avatar);
 
     if (!mounted) return;
 
@@ -92,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // UI (build method) tidak ada perubahan, jadi saya singkat.
+    // UI tidak berubah, jadi saya singkat.
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(

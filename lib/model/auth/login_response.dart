@@ -4,7 +4,7 @@ class LoginResponse {
   final bool success;
   final String message;
   final String? token;
-  final UserProfile? userProfile;
+  final UserProfile? userProfile; // Data profil pengguna
   final String error;
 
   LoginResponse({
@@ -12,16 +12,20 @@ class LoginResponse {
     required this.message,
     this.token,
     this.userProfile,
-    required this.error,
+    this.error = '',
   });
 
+  /// Factory constructor untuk mem-parsing JSON dari API.
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
+    // Cek jika 'data' tidak null sebelum mengakses isinya.
+    final data = json['data'];
     return LoginResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      token: json['data'] != null ? json['data']['token'] : null,
-      userProfile: null,
-      error: '',
+      token: data?['token'],
+      userProfile: data?['user'] != null
+          ? UserProfile.fromJson(data['user'])
+          : null,
     );
   }
 
@@ -29,8 +33,6 @@ class LoginResponse {
     return LoginResponse(
       success: false,
       message: '',
-      token: null,
-      userProfile: null,
       error: errorValue,
     );
   }
