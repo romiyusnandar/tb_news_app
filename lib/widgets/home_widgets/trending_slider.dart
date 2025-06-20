@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:my_berita/bloc/get_trending_news.dart';
 import 'package:my_berita/model/article/article_response.dart';
+import 'package:my_berita/screens/news_detail_screen.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:my_berita/model/article/article_model.dart';
 
@@ -107,7 +108,7 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> with Automa
     return articles.map((article) {
       return GestureDetector(
         onTap: () {
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => DetailPage(article: article)));
+          Navigator.push(context, MaterialPageRoute(builder: (context) => NewsDetailScreen(article: article)));
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),

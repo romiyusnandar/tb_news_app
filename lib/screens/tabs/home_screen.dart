@@ -6,6 +6,7 @@ import 'package:my_berita/model/article/article_model.dart';
 import 'package:my_berita/model/article/article_response.dart';
 import 'package:my_berita/screens/crud/create_news_screen.dart';
 import 'package:my_berita/screens/crud/manage_news_screen.dart';
+import 'package:my_berita/screens/news_detail_screen.dart';
 import 'package:my_berita/widgets/home_widgets/article_card.dart';
 import 'package:my_berita/widgets/home_widgets/trending_slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -127,6 +128,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _navigateToDetail(Article article) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => NewsDetailScreen(article: article),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -202,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
               article: article,
               isBookmarked: _bookmarkedIds.contains(article.id),
               onBookmarkPressed: () => _toggleBookmark(article.id),
-              onTap: () { /* TODO: Navigasi ke detail berita */ },
+              onTap: () => _navigateToDetail(article),
             );
           },
         ),
