@@ -35,10 +35,11 @@ class _ManageNewsScreenState extends State<ManageNewsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Hapus Artikel"),
-        content: const Text("Apakah Anda yakin ingin menghapus artikel ini secara permanen?"),
+        backgroundColor: const Color(0xFF2C3E50),
+        title: const Text("Hapus Artikel", style: TextStyle(color: Colors.white)),
+        content: const Text("Apakah Anda yakin ingin menghapus artikel ini secara permanen?", style: TextStyle(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text("Batal")),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text("Batal", style: TextStyle(color: Colors.white))),
           FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text("Hapus"), style: FilledButton.styleFrom(backgroundColor: Colors.redAccent)),
         ],
       ),
