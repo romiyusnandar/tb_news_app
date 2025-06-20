@@ -227,14 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const Icon(Icons.cloud_off, color: Colors.white54, size: 60),
             const SizedBox(height: 16),
             Text(
-              "Gagal memuat berita",
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
               error,
-              style: const TextStyle(color: Colors.white70),
+              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

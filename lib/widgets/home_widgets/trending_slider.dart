@@ -51,17 +51,18 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> with Automa
   }
 
   Widget _buildErrorWidget(String error) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, color: Colors.red, size: 40),
-          const SizedBox(height: 8),
-          Text(
-            "Gagal memuat berita: $error",
-            textAlign: TextAlign.center,
+    return SizedBox(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.cloud_off_rounded, color: Colors.white54, size: 50),
+              const SizedBox(height: 16),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -84,12 +85,16 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> with Automa
   Widget _buildTrendingSliderWidget(ArticleResponse data) {
     List<Article> articles = data.articles;
     if (articles.isEmpty) {
-      return const Center(child: Text("Tidak ada berita trending saat ini."));
+      return SizedBox(
+          height: 230.0,
+          child: const Center(child: Text("Tidak ada berita trending saat ini.", style: TextStyle(color: Colors.white70)))
+      );
     } else {
       return CarouselSlider(
         items: _getSliderItems(articles),
         options: CarouselOptions(
           autoPlay: true,
+          enlargeCenterPage: true,
           enableInfiniteScroll: articles.length > 1,
           height: 230.0,
           viewportFraction: 0.8,
@@ -109,7 +114,7 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> with Automa
           child: Stack(
             children: <Widget>[
               ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                borderRadius: const BorderRadius.all(Radius.circular(12.0)),
                 child: article.imageUrl != null && article.imageUrl!.isNotEmpty
                     ? FadeInImage.assetNetwork(
                   placeholder: 'assets/images/placeholder.png',
@@ -118,26 +123,20 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> with Automa
                   width: double.infinity,
                   height: double.infinity,
                   imageErrorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.broken_image, color: Colors.grey),
-                    );
+                    return Container(color: Colors.grey[800], child: const Icon(Icons.broken_image, color: Colors.grey));
                   },
                 )
-                    : Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.image_not_supported, color: Colors.grey),
-                ),
+                    : Container(color: Colors.grey[800], child: const Icon(Icons.image_not_supported, color: Colors.grey)),
               ),
               Container(
                 decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                  borderRadius: BorderRadius.all(Radius.circular(12.0)),
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
-                    stops: [0.1, 0.9],
+                    stops: [0.0, 0.7],
                     colors: [
-                      Colors.black87,
+                      Colors.black,
                       Colors.transparent,
                     ],
                   ),
@@ -173,7 +172,7 @@ class _TrendingSliderWidgetState extends State<TrendingSliderWidget> with Automa
                           ? NetworkImage(article.author.avatar!)
                           : null,
                       child: (article.author.avatar == null || article.author.avatar!.isEmpty)
-                          ? const Icon(Icons.person, size: 16, color: Colors.white)
+                          ? const Icon(Icons.person, size: 16, color: Colors.black)
                           : null,
                     ),
                     const SizedBox(width: 10.0),
@@ -215,7 +214,7 @@ class _ShimmerSliderCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF2C3E50),
-          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+          borderRadius: const BorderRadius.all(Radius.circular(12.0)),
         ),
         child: Stack(
           children: [
