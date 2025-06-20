@@ -1,20 +1,3 @@
-class UserProfileResponse {
-  final UserProfile? userProfile;
-  final String error;
-
-  UserProfileResponse(this.userProfile, this.error);
-
-  factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
-    return UserProfileResponse(
-      UserProfile.fromJson(json['data']),
-      "",
-    );
-  }
-
-  factory UserProfileResponse.loading() => UserProfileResponse(null, "loading");
-  factory UserProfileResponse.withError(String errorValue) => UserProfileResponse(null, errorValue);
-}
-
 class UserProfile {
   final String id;
   final String name;

@@ -11,24 +11,12 @@ class AuthRepository {
 
   Future<LoginResponse> login(String email, String password) async {
     try {
-      Response loginResponse = await _dio.post(loginUrl, data: {
+      Response response = await _dio.post(loginUrl, data: {
         'email': email,
         'password': password,
       });
 
-      if (loginResponse.data['success'] != true || loginResponse.data['data']['token'] == null) {
-        return LoginResponse.withError(loginResponse.data['message'] ?? 'Login gagal, token tidak ditemukan.');
-      }
-
-      final token = loginResponse.data['data']['token'];
-
-      return LoginResponse(
-        success: true,
-        message: "Login berhasil!",
-        token: token,
-        userProfile: null,
-        error: '',
-      );
+      return LoginResponse.fromJson(response.data);
 
     } on DioException catch (e) {
       final errorMessage = e.response?.data?['message'] ?? 'Email atau password salah.';

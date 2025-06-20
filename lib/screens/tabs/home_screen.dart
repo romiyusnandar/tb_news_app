@@ -4,6 +4,8 @@ import 'package:my_berita/bloc/get_all_news_bloc.dart';
 import 'package:my_berita/bloc/get_trending_news.dart';
 import 'package:my_berita/model/article/article_model.dart';
 import 'package:my_berita/model/article/article_response.dart';
+import 'package:my_berita/screens/crud/create_news_screen.dart';
+import 'package:my_berita/screens/crud/manage_news_screen.dart';
 import 'package:my_berita/widgets/home_widgets/article_card.dart';
 import 'package:my_berita/widgets/home_widgets/trending_slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,7 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
     });
-    getAllNewsBloc.getAllNews(page: 1);
+    // Memuat data awal
+    _onRefresh();
   }
 
   @override
@@ -67,12 +70,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.extentAfter < 300 &&
-        !_isLoadingMore &&
-        !_hasReachedMax) {
-      setState(() {
-        _isLoadingMore = true;
-      });
+    if (_scrollController.position.extentAfter < 300 && !_isLoadingMore && !_hasReachedMax) {
+      setState(() => _isLoadingMore = true);
       _currentPage++;
       getAllNewsBloc.getAllNews(page: _currentPage);
     }
@@ -92,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadBookmarks() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _bookmarkedIds = prefs.getStringList('bookmarked_articles') ?? [];
     });
@@ -109,6 +109,25 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _bookmarkedIds = updatedBookmarks;
     });
+  }
+
+  /// Fungsi untuk navigasi ke halaman tambah berita dan menangani hasilnya.
+  void _navigateAndDisplayAddScreen() async {
+    // Navigasi ke AddNewsScreen dan tunggu hasilnya (artikel baru).
+    final newArticle = await Navigator.of(context).push<Article>(
+      MaterialPageRoute(builder: (context) => const CreateNewsScreen()),
+    );
+
+    // Jika pengguna berhasil membuat artikel dan kembali...
+    if (newArticle != null && mounted) {
+      setState(() {
+        // Tambahkan artikel baru ke paling atas daftar (Optimistic UI).
+        _articles.insert(0, newArticle);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Artikel berhasil dipublikasikan!"), backgroundColor: Colors.green),
+      );
+    }
   }
 
   @override
@@ -144,9 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
-          Expanded(child: _buildActionButton(icon: Icons.add_circle_outline, label: 'Tambah', color: Colors.blueAccent, onPressed: () => _showSnackbar('Navigasi ke halaman tambah berita...'))),
+          Expanded(child: _buildActionButton(icon: Icons.add_circle_outline, label: 'Tambah', color: Colors.blueAccent, onPressed: _navigateAndDisplayAddScreen)),
           const SizedBox(width: 16),
-          Expanded(child: _buildActionButton(icon: Icons.edit_note, label: 'Manage', color: Colors.green, onPressed: () => _showSnackbar('Navigasi ke halaman kelola berita...'))),
+          Expanded(child: _buildActionButton(icon: Icons.edit_note, label: 'Manage', color: Colors.green, onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ManageNewsScreen())))),
         ],
       ),
     );
@@ -243,28 +262,12 @@ class _ShimmerArticleCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    height: 16,
-                    width: double.infinity,
-                    color: Colors.black.withOpacity(0.2),
-                  ),
-                  Container(
-                    height: 16,
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    color: Colors.black.withOpacity(0.2),
-                  ),
+                  Container(height: 16, width: double.infinity, color: Colors.black.withOpacity(0.2)),
+                  Container(height: 16, width: MediaQuery.of(context).size.width * 0.4, color: Colors.black.withOpacity(0.2)),
                   const Spacer(),
-                  Container(
-                    height: 10,
-                    width: MediaQuery.of(context).size.width * 0.3,
-                    color: Colors.black.withOpacity(0.2),
-                  ),
+                  Container(height: 10, width: MediaQuery.of(context).size.width * 0.3, color: Colors.black.withOpacity(0.2)),
                   const SizedBox(height: 6),
-                  Container(
-                    height: 10,
-                    width: double.infinity,
-                    color: Colors.black.withOpacity(0.2),
-                  ),
+                  Container(height: 10, width: double.infinity, color: Colors.black.withOpacity(0.2)),
                 ],
               ),
             ),
