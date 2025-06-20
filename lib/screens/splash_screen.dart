@@ -20,25 +20,18 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLoginStatus() async {
-    print("SPLASH_SCREEN: Memeriksa status login...");
-
     await Future.delayed(const Duration(seconds: 2));
 
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
 
-    print(
-        "SPLASH_SCREEN: Token yang ditemukan -> ${token ?? 'TIDAK ADA TOKEN'}");
-
     if (!mounted) return;
 
     if (token != null && token.isNotEmpty) {
-      print("SPLASH_SCREEN: Token ditemukan, navigasi ke MainScreen.");
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else {
-      print("SPLASH_SCREEN: Token KOSONG, navigasi ke LoginScreen.");
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );

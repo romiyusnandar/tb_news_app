@@ -22,7 +22,6 @@ class AuthRepository {
       final errorMessage = e.response?.data?['message'] ?? 'Email atau password salah.';
       return LoginResponse.withError(errorMessage);
     } catch (e) {
-      print("Error di AuthRepository: $e");
       return LoginResponse.withError("Terjadi kesalahan yang tidak terduga.");
     }
   }
@@ -42,7 +41,6 @@ class AuthRepository {
       Response response = await _dio.post(registerUrl, data: data, options: options);
       return RegisterResponse.fromJson(response.data);
     } on DioException catch (e) {
-      print("DioException on register: ${e.message}");
       if (e.response != null) {
         final errorMessage = e.response?.data?['message'] ?? 'Gagal mendaftarkan pengguna.';
         return RegisterResponse.withError("Error ${e.response?.statusCode}: $errorMessage");
@@ -50,7 +48,6 @@ class AuthRepository {
         return RegisterResponse.withError("Gagal terhubung ke server.");
       }
     } catch (e) {
-      print("Unexpected error on register: $e");
       return RegisterResponse.withError("Terjadi kesalahan yang tidak terduga.");
     }
   }

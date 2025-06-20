@@ -21,17 +21,31 @@ class GetBookmarkedArticlesBloc {
         return;
       }
 
-      final List<Future<Article>> articleFutures = bookmarkedIds.map((id) {
-        return _repository.getArticleById(id);
+      final List<Future<Article?>> articleFutures = bookmarkedIds.map((id) async {
+        try {
+          return await _repository.getArticleById(id);
+        } catch (error) {
+          print("Gagal mengambil bookmark dengan ID: $id. Menghapus dari daftar...");
+          await _removeInvalidBookmark(id);
+          return null;
+        }
       }).toList();
 
-      final List<Article> bookmarkedArticles = await Future.wait(articleFutures);
+      final List<Article?> results = await Future.wait(articleFutures);
+      final List<Article> validArticles = results.whereType<Article>().toList();
 
-      _subject.sink.add(ArticleResponse(true, "Berhasil", bookmarkedArticles, ''));
+      _subject.sink.add(ArticleResponse(true, "Berhasil", validArticles, ''));
 
     } catch (e) {
-      _subject.sink.add(ArticleResponse.withError("Gagal memuat sebagian atau semua bookmark: ${e.toString()}"));
+      _subject.sink.add(ArticleResponse.withError("Gagal memuat bookmark: ${e.toString()}"));
     }
+  }
+
+  Future<void> _removeInvalidBookmark(String articleId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final bookmarkedIds = prefs.getStringList('bookmarked_articles') ?? [];
+    bookmarkedIds.remove(articleId);
+    await prefs.setStringList('bookmarked_articles', bookmarkedIds);
   }
 
   dispose() => _subject.close();

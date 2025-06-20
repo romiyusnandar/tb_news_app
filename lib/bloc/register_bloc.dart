@@ -17,6 +17,7 @@ class RegisterBloc {
     _subject.close();
   }
 
+
   BehaviorSubject<RegisterResponse> get subject => _subject;
 }
 

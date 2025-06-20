@@ -4,7 +4,7 @@ class LoginResponse {
   final bool success;
   final String message;
   final String? token;
-  final UserProfile? userProfile; // Data profil pengguna
+  final UserProfile? userProfile;
   final String error;
 
   LoginResponse({
@@ -15,9 +15,7 @@ class LoginResponse {
     this.error = '',
   });
 
-  /// Factory constructor untuk mem-parsing JSON dari API.
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
-    // Cek jika 'data' tidak null sebelum mengakses isinya.
     final data = json['data'];
     return LoginResponse(
       success: json['success'] ?? false,

@@ -76,22 +76,22 @@ class _MainScreenState extends State<MainScreen> {
                 unselectedFontSize: 9.5,
                 selectedFontSize: 10,
                 type: BottomNavigationBarType.fixed,
-                fixedColor: theme.Colors.primary,
+                fixedColor: Colors.blueAccent,
                 currentIndex: snapshot.data!.index,
                 onTap: _bottomNavBarBloc.pickItem,
                 items: const [
                   BottomNavigationBarItem(
-                      label: "Home",
+                      label: "Beranda",
                       icon: Icon(EvaIcons.homeOutline),
                       activeIcon: Icon(EvaIcons.home)
                   ),
                   BottomNavigationBarItem(
-                    label: "Bookmark",
+                    label: "Penanda",
                     icon: Icon(EvaIcons.bookmarkOutline),
                     activeIcon: Icon(EvaIcons.bookmark),
                   ),
                   BottomNavigationBarItem(
-                    label: "Profile",
+                    label: "Profil",
                     icon: Icon(EvaIcons.personOutline),
                     activeIcon: Icon(EvaIcons.person),
                   ),

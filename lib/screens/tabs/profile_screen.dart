@@ -33,15 +33,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
-    print("LOGOUT: Tombol Logout Ditekan.");
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    print("LOGOUT: SharedPreferences berhasil dihapus.");
 
     loginBloc.drainStream();
     if (!mounted) return;
 
-    print("LOGOUT: Melakukan navigasi ke LoginScreen...");
     Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const SplashScreen()),
           (route) => false,

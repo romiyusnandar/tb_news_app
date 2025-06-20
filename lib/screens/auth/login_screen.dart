@@ -85,35 +85,143 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1C2833),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const SizedBox(height: 80.0),
-              const Text('Selamat Datang Kembali', textAlign: TextAlign.center, style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8.0),
-              Text('Masuk untuk melanjutkan', textAlign: TextAlign.center, style: TextStyle(fontSize: 16.0, color: Colors.grey[600])),
-              const SizedBox(height: 48.0),
-              TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email', prefixIcon: const Icon(Icons.email_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)))),
-              const SizedBox(height: 16.0),
-              TextField(controller: _passwordController, obscureText: !_isPasswordVisible, decoration: InputDecoration(labelText: 'Password', prefixIcon: const Icon(Icons.lock_outline), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)), suffixIcon: IconButton(icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible)))),
-              const SizedBox(height: 24.0),
-              _isLoading ? const Center(child: CircularProgressIndicator()) : ElevatedButton(onPressed: _login, style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), backgroundColor: Colors.blueAccent), child: const Text('Masuk', style: TextStyle(fontSize: 16, color: Colors.white))),
-              const SizedBox(height: 24.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Belum punya akun?", style: TextStyle(color: Colors.grey[600])),
-                  TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterScreen())), child: const Text('Daftar di sini', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent))),
-                ],
+        child: Stack(
+          children: [
+            _buildForm(),
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(child: CircularProgressIndicator()),
               ),
-            ],
-          ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildForm() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            // Header
+            const Icon(Icons.article_outlined, color: Colors.blueAccent, size: 60),
+            const SizedBox(height: 24),
+            const Text(
+              'Selamat Datang Kembali',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8.0),
+            const Text(
+              'Masuk untuk membaca dan membuat berita.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16.0, color: Colors.white70),
+            ),
+            const SizedBox(height: 48.0),
+
+            // Form Email
+            _buildTextField(_emailController, "Alamat Email", icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+            const SizedBox(height: 16.0),
+
+            // Form Password
+            _buildPasswordField(),
+            const SizedBox(height: 32.0),
+
+            // Tombol Login
+            _buildSubmitButton(),
+            const SizedBox(height: 24.0),
+
+            _buildRegisterLink(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hintText, {IconData? icon, TextInputType? keyboardType}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(color: Colors.white54),
+        prefixIcon: icon != null ? Icon(icon, color: Colors.white70, size: 20) : null,
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.05),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0), borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5)),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: !_isPasswordVisible,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: "Password",
+        hintStyle: const TextStyle(color: Colors.white54),
+        prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70, size: 20),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.05),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0), borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5)),
+        suffixIcon: IconButton(
+          icon: Icon(_isPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.white70),
+          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.0),
+        gradient: const LinearGradient(
+          colors: [Colors.blueAccent, Colors.lightBlueAccent],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        boxShadow: [BoxShadow(color: Colors.blueAccent.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _login,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+        ),
+        child: const Text("Masuk", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
+  Widget _buildRegisterLink() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("Belum punya akun?", style: TextStyle(color: Colors.white70)),
+        TextButton(
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterScreen())),
+          child: const Text("Daftar di sini", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.lightBlueAccent)),
+        ),
+      ],
     );
   }
 }

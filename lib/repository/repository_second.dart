@@ -35,19 +35,12 @@ class NewsRepositorySecond {
 
     try {
       Response response = await _dio.get(getAllNewsUrl, queryParameters: params, options: _apiOptions);
-
-      // ================== LOG DIAGNOSTIK ==================
-      print("✅ Success calling: ${response.requestOptions.uri}");
-      // ======================================================
-
       return ArticleResponse.fromJson(response.data);
     } on DioException catch (e) {
-      // ================== LOG DIAGNOSTIK ==================
       if (e.response != null) {
         print("❌ Error calling: ${e.response?.requestOptions.uri}");
       }
       print("❌ DioException: ${e.message}");
-      // ======================================================
 
       final apiErrorMessage = e.response?.data?['message'] ?? 'Gagal memuat daftar berita.';
       return ArticleResponse.withError("Error ${e.response?.statusCode}: $apiErrorMessage");
@@ -167,17 +160,20 @@ class NewsRepositorySecond {
     final prefs = await SharedPreferences.getInstance();
     try {
       Response response = await _dio.get("$createNewsUrl/$articleId");
+
       if (response.data['success'] == true && response.data['data'] != null) {
 
         final articleJson = response.data['data'] as Map<String, dynamic>;
 
-        final authorName = prefs.getString('user_name') ?? 'Saya';
-        final authorTitle = prefs.getString('user_title') ?? '';
-        final authorAvatar = prefs.getString('user_avatar') ?? '';
+        if (articleJson['author'] == null) {
+          final authorName = prefs.getString('user_name') ?? 'Saya';
+          final authorTitle = prefs.getString('user_title') ?? '';
+          final authorAvatar = prefs.getString('user_avatar') ?? '';
 
-        articleJson['author'] = {
-          'name': authorName, 'title': authorTitle, 'avatar': authorAvatar
-        };
+          articleJson['author'] = {
+            'name': authorName, 'title': authorTitle, 'avatar': authorAvatar
+          };
+        }
 
         return Article.fromJson(articleJson);
       } else {

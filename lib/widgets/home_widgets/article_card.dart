@@ -107,7 +107,7 @@ class ArticleCard extends StatelessWidget {
                           constraints: const BoxConstraints(),
                           icon: Icon(
                             isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                            color: isBookmarked ? Colors.amber : Colors.white70,
+                            color: isBookmarked ? Colors.blueAccent : Colors.white70,
                           ),
                           onPressed: onBookmarkPressed,
                         )
