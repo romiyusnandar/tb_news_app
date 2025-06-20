@@ -162,4 +162,29 @@ class NewsRepositorySecond {
       throw Exception('Terjadi kesalahan tak terduga: $e');
     }
   }
+
+  Future<Article> getArticleById(String articleId) async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      Response response = await _dio.get("$createNewsUrl/$articleId");
+      if (response.data['success'] == true && response.data['data'] != null) {
+
+        final articleJson = response.data['data'] as Map<String, dynamic>;
+
+        final authorName = prefs.getString('user_name') ?? 'Saya';
+        final authorTitle = prefs.getString('user_title') ?? '';
+        final authorAvatar = prefs.getString('user_avatar') ?? '';
+
+        articleJson['author'] = {
+          'name': authorName, 'title': authorTitle, 'avatar': authorAvatar
+        };
+
+        return Article.fromJson(articleJson);
+      } else {
+        throw Exception('Artikel dengan ID $articleId tidak ditemukan.');
+      }
+    } on DioException catch (e) {
+      throw Exception('Gagal mengambil artikel: ${e.message}');
+    }
+  }
 }

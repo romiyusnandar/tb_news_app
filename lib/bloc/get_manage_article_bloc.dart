@@ -1,3 +1,4 @@
+import 'package:my_berita/model/article/article_model.dart';
 import 'package:my_berita/model/article/article_response.dart';
 import 'package:my_berita/repository/repository_second.dart';
 import 'package:rxdart/rxdart.dart';
@@ -11,24 +12,25 @@ class GetManagedArticlesBloc {
   getManagedArticles() async {
     _subject.sink.add(ArticleResponse.withError("loading"));
 
-    final prefs = await SharedPreferences.getInstance();
-    final myArticleIds = prefs.getStringList('my_article_ids') ?? [];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final myArticleIds = prefs.getStringList('my_article_ids') ?? [];
 
-    if (myArticleIds.isEmpty) {
-      _subject.sink.add(ArticleResponse(true, "Tidak ada artikel.", [], ''));
-      return;
-    }
+      if (myArticleIds.isEmpty) {
+        _subject.sink.add(ArticleResponse(true, "Tidak ada artikel.", [], ''));
+        return;
+      }
 
-    ArticleResponse allArticlesResponse = await _repository.getAllNews();
+      final List<Future<Article>> articleFutures = myArticleIds.map((id) {
+        return _repository.getArticleById(id);
+      }).toList();
 
-    if (allArticlesResponse.success) {
-      final myArticles = allArticlesResponse.articles
-          .where((article) => myArticleIds.contains(article.id))
-          .toList();
+      final List<Article> myArticles = await Future.wait(articleFutures);
 
       _subject.sink.add(ArticleResponse(true, "Berhasil", myArticles, ''));
-    } else {
-      _subject.sink.add(allArticlesResponse);
+
+    } catch (e) {
+      _subject.sink.add(ArticleResponse.withError("Gagal memuat sebagian atau semua artikel: ${e.toString()}"));
     }
   }
 
