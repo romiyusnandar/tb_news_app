@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:my_berita/bloc/bottom_navbar.dart';
+import 'package:my_berita/screens/tabs/bookmark_screen.dart';
 import 'package:my_berita/screens/tabs/home_screen.dart';
 import 'package:my_berita/screens/tabs/profile_screen.dart';
-import 'package:my_berita/screens/tabs/source_screen.dart';
 import 'package:my_berita/utils/theme.dart' as theme;
 
 class MainScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const SourceScreen(),
+    const BookmarkScreen(),
     const ProfileScreen(),
   ];
 
@@ -45,12 +45,10 @@ class _MainScreenState extends State<MainScreen> {
           stream: _bottomNavBarBloc.navBarItemStream,
           initialData: _bottomNavBarBloc.defaultItem,
           builder: (BuildContext context, AsyncSnapshot<NavBarItem> snapshot) {
-
             return IndexedStack(
               index: snapshot.data!.index,
               children: _screens,
             );
-
           },
         ),
       ),
@@ -64,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
                 topLeft: Radius.circular(30.0),
                 topRight: Radius.circular(30.0),
               ),
-              boxShadow: [BoxShadow(color: Colors.white, spreadRadius: 0, blurRadius: 10.0)],
+              boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.1), spreadRadius: 0, blurRadius: 10.0)],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.only(
@@ -89,11 +87,11 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   BottomNavigationBarItem(
                     label: "Bookmark",
-                    icon: Icon(EvaIcons.gridOutline),
-                    activeIcon: Icon(EvaIcons.grid),
+                    icon: Icon(EvaIcons.bookmarkOutline),
+                    activeIcon: Icon(EvaIcons.bookmark),
                   ),
                   BottomNavigationBarItem(
-                    label: "Profile", // Label diubah agar sesuai dengan ikon
+                    label: "Profile",
                     icon: Icon(EvaIcons.personOutline),
                     activeIcon: Icon(EvaIcons.person),
                   ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:my_berita/bloc/bookmark_bloc.dart';
 import 'package:my_berita/bloc/get_all_news_bloc.dart';
 import 'package:my_berita/bloc/get_trending_news.dart';
 import 'package:my_berita/model/article/article_model.dart';
@@ -9,7 +10,6 @@ import 'package:my_berita/screens/crud/manage_news_screen.dart';
 import 'package:my_berita/screens/news_detail_screen.dart';
 import 'package:my_berita/widgets/home_widgets/article_card.dart';
 import 'package:my_berita/widgets/home_widgets/trending_slider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,8 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasReachedMax = false;
   String _currentError = '';
 
-  List<String> _bookmarkedIds = [];
-
   @override
   void initState() {
     super.initState();
@@ -37,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _initializeScreen() {
-    _loadBookmarks();
     _scrollController.addListener(_onScroll);
     _newsSubscription = getAllNewsBloc.subject.stream.listen((response) {
       if (!mounted) return;
@@ -85,32 +82,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _currentError = '';
       _isLoadingMore = false;
     });
+    bookmarkBloc.loadBookmarks();
     await Future.wait<void>([
       getAllNewsBloc.getAllNews(page: _currentPage),
       getTrendingNewsBloc.getTrendingNews(),
     ]);
-  }
-
-  Future<void> _loadBookmarks() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _bookmarkedIds = prefs.getStringList('bookmarked_articles') ?? [];
-    });
-  }
-
-  Future<void> _toggleBookmark(String articleId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final updatedBookmarks = List<String>.from(_bookmarkedIds);
-    if (updatedBookmarks.contains(articleId)) {
-      updatedBookmarks.remove(articleId);
-    } else {
-      updatedBookmarks.add(articleId);
-    }
-    await prefs.setStringList('bookmarked_articles', updatedBookmarks);
-    setState(() {
-      _bookmarkedIds = updatedBookmarks;
-    });
   }
 
   void _navigateAndDisplayAddScreen() async {
@@ -193,34 +169,41 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAllNewsSection() {
-    if (_articles.isEmpty && _currentError == 'loading') {
-      return _buildShimmerList();
-    }
-    if (_currentError.isNotEmpty && _currentError != 'loading') {
-      return _buildFullPageError(_currentError);
-    }
-    return Column(
-      children: [
-        ListView.builder(
-          itemCount: _articles.length,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            final article = _articles[index];
-            return ArticleCard(
-              article: article,
-              isBookmarked: _bookmarkedIds.contains(article.id),
-              onBookmarkPressed: () => _toggleBookmark(article.id),
-              onTap: () => _navigateToDetail(article),
-            );
-          },
-        ),
-        if (_isLoadingMore)
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
-          ),
-      ],
+    return StreamBuilder<List<String>>(
+      stream: bookmarkBloc.stream,
+      builder: (context, snapshot) {
+        final bookmarkedIds = snapshot.data ?? [];
+
+        if (_articles.isEmpty && _currentError == 'loading') {
+          return _buildShimmerList();
+        }
+        if (_currentError.isNotEmpty && _currentError != 'loading') {
+          return _buildFullPageError(_currentError);
+        }
+        return Column(
+          children: [
+            ListView.builder(
+              itemCount: _articles.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                final article = _articles[index];
+                return ArticleCard(
+                  article: article,
+                  isBookmarked: bookmarkedIds.contains(article.id),
+                  onBookmarkPressed: () => bookmarkBloc.toggleBookmark(article.id),
+                  onTap: () => _navigateToDetail(article),
+                );
+              },
+            ),
+            if (_isLoadingMore)
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
+              ),
+          ],
+        );
+      },
     );
   }
 
