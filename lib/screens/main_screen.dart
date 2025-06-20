@@ -18,6 +18,12 @@ class _MainScreenState extends State<MainScreen> {
 
   late BottomNavBarBloc _bottomNavBarBloc;
 
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const SourceScreen(),
+    const ProfileScreen(),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -39,14 +45,12 @@ class _MainScreenState extends State<MainScreen> {
           stream: _bottomNavBarBloc.navBarItemStream,
           initialData: _bottomNavBarBloc.defaultItem,
           builder: (BuildContext context, AsyncSnapshot<NavBarItem> snapshot) {
-            switch (snapshot.data!) {
-              case NavBarItem.home:
-                return HomeScreen();
-              case NavBarItem.bookmark:
-                return SourceScreen();
-              case NavBarItem.profile:
-                return ProfileScreen();
-            }
+
+            return IndexedStack(
+              index: snapshot.data!.index,
+              children: _screens,
+            );
+
           },
         ),
       ),
@@ -79,19 +83,19 @@ class _MainScreenState extends State<MainScreen> {
                 onTap: _bottomNavBarBloc.pickItem,
                 items: const [
                   BottomNavigationBarItem(
-                    label: "Home",
-                    icon: Icon(EvaIcons.homeOutline),
-                    activeIcon: Icon(EvaIcons.home)
+                      label: "Home",
+                      icon: Icon(EvaIcons.homeOutline),
+                      activeIcon: Icon(EvaIcons.home)
                   ),
                   BottomNavigationBarItem(
-                      label: "Bookmark",
-                      icon: Icon(EvaIcons.gridOutline),
-                      activeIcon: Icon(EvaIcons.grid),
+                    label: "Bookmark",
+                    icon: Icon(EvaIcons.gridOutline),
+                    activeIcon: Icon(EvaIcons.grid),
                   ),
                   BottomNavigationBarItem(
-                      label: "Settings",
-                      icon: Icon(EvaIcons.personOutline),
-                      activeIcon: Icon(EvaIcons.person),
+                    label: "Profile", // Label diubah agar sesuai dengan ikon
+                    icon: Icon(EvaIcons.personOutline),
+                    activeIcon: Icon(EvaIcons.person),
                   ),
                 ],
               ),

@@ -86,7 +86,6 @@ class _ManageNewsScreenState extends State<ManageNewsScreen> {
             if (articles.isEmpty) {
               return const Center(child: Text("Anda belum memiliki artikel.", style: TextStyle(color: Colors.white70)));
             }
-            // Menggunakan ListView dengan padding
             return ListView.builder(
               padding: const EdgeInsets.all(8.0),
               itemCount: articles.length,

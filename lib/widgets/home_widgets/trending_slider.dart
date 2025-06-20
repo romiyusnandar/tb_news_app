@@ -12,17 +12,24 @@ class TrendingSliderWidget extends StatefulWidget {
   State<TrendingSliderWidget> createState() => _TrendingSliderWidgetState();
 }
 
-class _TrendingSliderWidgetState extends State<TrendingSliderWidget> {
+class _TrendingSliderWidgetState extends State<TrendingSliderWidget> with AutomaticKeepAliveClientMixin {
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    getTrendingNewsBloc.getTrendingNews();
+    if(getTrendingNewsBloc.subject.stream.valueOrNull == null) {
+      getTrendingNewsBloc.getTrendingNews();
+    }
     timeago.setLocaleMessages('id', timeago.IdMessages());
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return StreamBuilder<ArticleResponse>(
       stream: getTrendingNewsBloc.subject.stream,
       builder: (context, AsyncSnapshot<ArticleResponse> snapshot) {

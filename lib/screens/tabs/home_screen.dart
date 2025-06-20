@@ -57,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
     });
-    // Memuat data awal
     _onRefresh();
   }
 
@@ -111,17 +110,13 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  /// Fungsi untuk navigasi ke halaman tambah berita dan menangani hasilnya.
   void _navigateAndDisplayAddScreen() async {
-    // Navigasi ke AddNewsScreen dan tunggu hasilnya (artikel baru).
     final newArticle = await Navigator.of(context).push<Article>(
       MaterialPageRoute(builder: (context) => const CreateNewsScreen()),
     );
 
-    // Jika pengguna berhasil membuat artikel dan kembali...
     if (newArticle != null && mounted) {
       setState(() {
-        // Tambahkan artikel baru ke paling atas daftar (Optimistic UI).
         _articles.insert(0, newArticle);
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,10 +178,6 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       ),
     );
-  }
-
-  void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildAllNewsSection() {
