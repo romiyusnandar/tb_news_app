@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:my_berita/screens/main_screen.dart';
-import 'package:my_berita/screens/auth/login_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
@@ -16,26 +14,17 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
+    _navigateToHome();
   }
 
-  Future<void> _checkLoginStatus() async {
+  Future<void> _navigateToHome() async {
     await Future.delayed(const Duration(seconds: 2));
-
-    final prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString('auth_token');
 
     if (!mounted) return;
 
-    if (token != null && token.isNotEmpty) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
-    }
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const MainScreen()),
+    );
   }
 
   @override

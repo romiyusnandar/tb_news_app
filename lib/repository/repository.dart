@@ -1,72 +1,27 @@
 import 'package:dio/dio.dart';
-import 'package:my_berita/model/article/article_response.dart';
-import 'package:my_berita/model/source/source_response.dart';
+import 'package:my_berita/model/article_model.dart';
 
-// Using news api v2
 class NewsRepository {
-  static const String baseUrl = "https://newsapi.org/v2";
-  final String apiKey = "d0d335cc1074458e9c2b29a1d23ca37c";
+  static String mainUrl = "http://45.149.187.204:3000";
+  final String newsUrl = "$mainUrl/api/news";
 
   final Dio _dio = Dio();
 
-  var getSourcesUrl = "$baseUrl/sources";
-  var getTopHeadlinesUrl = "$baseUrl/top-headlines";
-  var getEverythingUrl = "$baseUrl/everything";
+  final Options _apiOptions = Options(headers: {'Accept': 'application/json'});
 
-  Future<SourceResponse> getSources() async {
-    var params = {
-      "apiKey": apiKey,
-      "language": "id",
-      "country": "id",
-    };
+  Future<ArticleResponse> getAllNews({int page = 1, int limit = 10}) async {
+    final params = {'page': page, 'limit': limit};
     try {
-      Response response = await _dio.get(
-        getSourcesUrl,
-        queryParameters: params
-      );
-      return SourceResponse.fromJson(response.data);
-    } catch (e, stackTrace) {
-      print("Error fetching sources: $e");
-      print("Stack trace: $stackTrace");
-      return SourceResponse.withError("$e");
+      Response response = await _dio.get(newsUrl, queryParameters: params, options: _apiOptions);
+      return ArticleResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      return ArticleResponse.withError(e.response?.data?['body']?['message'] ?? 'Gagal memuat berita.');
+    } catch (e) {
+      return ArticleResponse.withError("Terjadi kesalahan yang tidak terduga.");
     }
   }
 
-  Future<ArticleResponse> getTopHeadlines() async {
-    var params = {
-      "apiKey": apiKey,
-      "country": "us",
-    };
-    try {
-      Response response = await _dio.get(
-        getTopHeadlinesUrl,
-        queryParameters: params
-      );
-      return ArticleResponse.fromJson(response.data);
-    } catch (e, stackTrace) {
-      print("Error fetching top headlines: $e");
-      print("Stack trace: $stackTrace");
-      return ArticleResponse.withError("$e");
-    }
-  }
-
-  Future<ArticleResponse> search(String query) async {
-    var params = {
-      "apiKey": apiKey,
-      "q": query,
-      "language": "id",
-      "sortBy": "popularity",
-    };
-    try {
-      Response response = await _dio.get(
-          getEverythingUrl,
-          queryParameters: params
-      );
-      return ArticleResponse.fromJson(response.data);
-    } catch (e, stackTrace) {
-      print("Error searching articles: $e");
-      print("Stack trace: $stackTrace");
-      return ArticleResponse.withError("$e");
-    }
+  Future<ArticleResponse> getTrendingNews() async {
+    return getAllNews(page: 1, limit: 5);
   }
 }

@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:my_berita/bloc/bookmark_bloc.dart';
 import 'package:my_berita/bloc/get_all_news_bloc.dart';
-import 'package:my_berita/bloc/get_trending_news.dart';
-import 'package:my_berita/model/article/article_model.dart';
-import 'package:my_berita/model/article/article_response.dart';
-import 'package:my_berita/screens/crud/create_news_screen.dart';
-import 'package:my_berita/screens/crud/manage_news_screen.dart';
+import 'package:my_berita/model/article_model.dart';
 import 'package:my_berita/screens/news_detail_screen.dart';
 import 'package:my_berita/widgets/home_widgets/article_card.dart';
-import 'package:my_berita/widgets/home_widgets/trending_slider.dart';
+import 'package:my_berita/widgets/home_widgets/news_slider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -60,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _newsSubscription?.cancel();
     super.dispose();
@@ -82,34 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _currentError = '';
       _isLoadingMore = false;
     });
-    bookmarkBloc.loadBookmarks();
-    await Future.wait<void>([
-      getAllNewsBloc.getAllNews(page: _currentPage),
-      getTrendingNewsBloc.getTrendingNews(),
-    ]);
-  }
-
-  void _navigateAndDisplayAddScreen() async {
-    final newArticle = await Navigator.of(context).push<Article>(
-      MaterialPageRoute(builder: (context) => const CreateNewsScreen()),
-    );
-
-    if (newArticle != null && mounted) {
-      setState(() {
-        _articles.insert(0, newArticle);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Artikel berhasil dipublikasikan!"), backgroundColor: Colors.green),
-      );
-    }
-  }
-
-  void _navigateToDetail(Article article) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => NewsDetailScreen(article: article),
-      ),
-    );
+    await getAllNewsBloc.getAllNews(page: 1);
   }
 
   @override
@@ -119,21 +86,22 @@ class _HomeScreenState extends State<HomeScreen> {
       color: Colors.white,
       backgroundColor: Colors.blueAccent,
       child: ListView(
-        physics: AlwaysScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         controller: _scrollController,
         padding: const EdgeInsets.symmetric(vertical: 16.0),
         children: [
           const Padding(
             padding: EdgeInsets.only(left: 16.0, bottom: 12.0),
-            child: Text("Trending Saat Ini", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            child: Text("Berita Teratas", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
           ),
-          const TrendingSliderWidget(),
-          const SizedBox(height: 24),
-          _buildActionButtons(),
+          TrendingSliderWidget(
+            articles: _articles,
+            isLoading: _articles.isEmpty && _currentError == 'loading',
+          ),
           const SizedBox(height: 24),
           const Padding(
             padding: EdgeInsets.only(left: 16.0, bottom: 12.0),
-            child: Text("Berita Terbaru", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            child: Text("Semua Berita", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
           ),
           _buildAllNewsSection(),
         ],
@@ -141,97 +109,37 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildActionButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        children: [
-          Expanded(child: _buildActionButton(icon: Icons.add_circle_outline, label: 'Tambah', color: Colors.blueAccent, onPressed: _navigateAndDisplayAddScreen)),
-          const SizedBox(width: 16),
-          Expanded(child: _buildActionButton(icon: Icons.edit_note, label: 'Manage', color: Colors.green, onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ManageNewsScreen())))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({required IconData icon, required String label, required Color color, required VoidCallback onPressed}) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, color: Colors.white),
-      label: Text(label, style: const TextStyle(color: Colors.white)),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(vertical: 14.0),
-        textStyle: const TextStyle(fontWeight: FontWeight.bold),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      ),
-    );
-  }
-
   Widget _buildAllNewsSection() {
-    return StreamBuilder<List<String>>(
-      stream: bookmarkBloc.stream,
-      builder: (context, snapshot) {
-        final bookmarkedIds = snapshot.data ?? [];
-
-        if (_articles.isEmpty && _currentError == 'loading') {
-          return _buildShimmerList();
-        }
-        if (_currentError.isNotEmpty && _currentError != 'loading') {
-          return _buildFullPageError(_currentError);
-        }
-        return Column(
-          children: [
-            ListView.builder(
-              itemCount: _articles.length,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                final article = _articles[index];
-                return ArticleCard(
-                  article: article,
-                  isBookmarked: bookmarkedIds.contains(article.id),
-                  onBookmarkPressed: () => bookmarkBloc.toggleBookmark(article.id),
-                  onTap: () => _navigateToDetail(article),
-                );
+    if (_articles.isEmpty && _currentError == 'loading') {
+      return _buildShimmerList();
+    }
+    if (_currentError.isNotEmpty && _currentError != 'loading') {
+      return Container(height: 200, child: Center(child: Text(_currentError, style: TextStyle(color: Colors.white70))));
+    }
+    return Column(
+      children: [
+        ListView.builder(
+          itemCount: _articles.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final article = _articles[index];
+            return ArticleCard(
+              article: article,
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => NewsDetailScreen(),
+                ));
               },
-            ),
-            if (_isLoadingMore)
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildFullPageError(String error) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
-      alignment: Alignment.center,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off, color: Colors.white54, size: 60),
-            const SizedBox(height: 16),
-            Text(
-              error,
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              "Tarik layar ke bawah untuk mencoba lagi",
-              style: TextStyle(color: Colors.white54, fontStyle: FontStyle.italic),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            );
+          },
         ),
-      ),
+        if (_isLoadingMore)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
+          ),
+      ],
     );
   }
 
@@ -247,46 +155,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _ShimmerArticleCard extends StatelessWidget {
   const _ShimmerArticleCard();
-
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      padding: const EdgeInsets.all(12.0),
+      height: 124,
       decoration: BoxDecoration(
         color: const Color(0xFF2C3E50),
         borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 100,
-            width: 120,
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: SizedBox(
-              height: 100,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(height: 16, width: double.infinity, color: Colors.black.withOpacity(0.2)),
-                  Container(height: 16, width: MediaQuery.of(context).size.width * 0.4, color: Colors.black.withOpacity(0.2)),
-                  const Spacer(),
-                  Container(height: 10, width: MediaQuery.of(context).size.width * 0.3, color: Colors.black.withOpacity(0.2)),
-                  const SizedBox(height: 6),
-                  Container(height: 10, width: double.infinity, color: Colors.black.withOpacity(0.2)),
-                ],
-              ),
-            ),
-          )
-        ],
       ),
     );
   }

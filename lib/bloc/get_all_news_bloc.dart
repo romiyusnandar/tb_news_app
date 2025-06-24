@@ -1,9 +1,9 @@
-import 'package:my_berita/model/article/article_response.dart';
-import 'package:my_berita/repository/repository_second.dart';
+import 'package:my_berita/model/article_model.dart';
+import 'package:my_berita/repository/repository.dart';
 import 'package:rxdart/rxdart.dart';
 
 class GetAllNewsBloc {
-  final NewsRepositorySecond _repository = NewsRepositorySecond();
+  final NewsRepository _repository = NewsRepository();
   final BehaviorSubject<ArticleResponse> _subject =
   BehaviorSubject<ArticleResponse>();
 
