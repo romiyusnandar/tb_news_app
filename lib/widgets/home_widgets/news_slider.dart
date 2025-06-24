@@ -54,7 +54,6 @@ class TrendingSliderWidget extends StatelessWidget {
         height: 230.0,
         viewportFraction: 0.85,
         autoPlay: true,
-        enlargeCenterPage: true,
       ),
     );
   }
@@ -64,7 +63,7 @@ class TrendingSliderWidget extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => NewsDetailScreen(),
+            builder: (context) => NewsDetailScreen(article: article),
           ),
         );
       },
