@@ -1,27 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:my_berita/bloc/create_article_bloc.dart';
+import 'package:my_berita/model/article_model.dart';
+import 'package:my_berita/repository/repository.dart';
 
-class CreateNewsScreen extends StatefulWidget {
-  const CreateNewsScreen({super.key});
+class EditNewsScreen extends StatefulWidget {
+  final Article article;
+  const EditNewsScreen({super.key, required this.article});
 
   @override
-  State<CreateNewsScreen> createState() => _CreateNewsScreenState();
+  State<EditNewsScreen> createState() => _EditNewsScreenState();
 }
 
-class _CreateNewsScreenState extends State<CreateNewsScreen> {
+class _EditNewsScreenState extends State<EditNewsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _summaryController = TextEditingController();
-  final _contentController = TextEditingController();
-  final _imageUrlController = TextEditingController();
-  final _categoryController = TextEditingController();
-  final _tagsController = TextEditingController();
-  bool _isPublished = true;
+  late TextEditingController _titleController;
+  late TextEditingController _summaryController;
+  late TextEditingController _contentController;
+  late TextEditingController _imageUrlController;
+  late TextEditingController _categoryController;
+  late TextEditingController _tagsController;
+  late bool _isPublished;
+
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    createArticleBloc.reset();
+    _titleController = TextEditingController(text: widget.article.title);
+    _summaryController = TextEditingController(text: widget.article.summary);
+    _contentController = TextEditingController(text: widget.article.content);
+    _imageUrlController = TextEditingController(text: widget.article.featuredImageUrl);
+    _categoryController = TextEditingController(text: widget.article.category);
+    _tagsController = TextEditingController(text: widget.article.tags.join(', '));
+    _isPublished = true;
   }
 
   @override
@@ -35,32 +45,41 @@ class _CreateNewsScreenState extends State<CreateNewsScreen> {
     super.dispose();
   }
 
-  void _submitArticle() {
+  void _submitUpdate() async {
     if (_formKey.currentState!.validate()) {
-      final tagsList = _tagsController.text.split(',').map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toList();
-      createArticleBloc.createArticle(
-        title: _titleController.text,
-        summary: _summaryController.text,
-        content: _contentController.text,
-        featuredImageUrl: _imageUrlController.text,
-        category: _categoryController.text,
-        tags: tagsList,
-        isPublished: _isPublished,
-      );
-    }
-  }
+      setState(() => _isLoading = true);
 
-  void _showErrorDialog(String message) {
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2C3E50),
-        title: const Text("Gagal Mempublikasikan", style: TextStyle(color: Colors.white)),
-        content: Text(message, style: const TextStyle(color: Colors.white70)),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("OK"))],
-      ),
-    );
+      final tagsList = _tagsController.text.split(',').map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toList();
+
+      final updatedData = {
+        'title': _titleController.text,
+        'summary': _summaryController.text,
+        'content': _contentController.text,
+        'featuredImageUrl': _imageUrlController.text,
+        'category': _categoryController.text,
+        'tags': tagsList,
+        'isPublished': _isPublished,
+      };
+
+      try {
+        final newsRepository = NewsRepository();
+        await newsRepository.updateArticle(widget.article.id, updatedData);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Artikel berhasil diperbarui!"), backgroundColor: Colors.green),
+          );
+          Navigator.of(context).pop(true);
+        }
+      } catch (e) {
+        if(mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Gagal memperbarui: ${e.toString()}"), backgroundColor: Colors.red),
+          );
+        }
+      } finally {
+        if(mounted) setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -68,36 +87,20 @@ class _CreateNewsScreenState extends State<CreateNewsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF1C2833),
       appBar: AppBar(
-        title: const Text("Buat Artikel Baru", style: TextStyle(color: Colors.white)),
+        title: const Text("Edit Artikel"),
         backgroundColor: const Color(0xFF1A1A2E),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SafeArea(
-        child: StreamBuilder<FormSubmissionResult>(
-          stream: createArticleBloc.subject.stream,
-          builder: (context, snapshot) {
-            final result = snapshot.data ?? FormSubmissionResult(FormSubmissionState.initial);
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (result.state == FormSubmissionState.success) {
-                Navigator.of(context).pop(result.article);
-              } else if (result.state == FormSubmissionState.error) {
-                _showErrorDialog(result.errorMessage!);
-                createArticleBloc.reset();
-              }
-            });
-
-            return Stack(
-              children: [
-                _buildForm(),
-                if (result.state == FormSubmissionState.loading)
-                  Container(
-                    color: Colors.black.withOpacity(0.5),
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
-              ],
-            );
-          },
+        child: Stack(
+          children: [
+            _buildForm(),
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
         ),
       ),
     );
@@ -178,17 +181,17 @@ class _CreateNewsScreenState extends State<CreateNewsScreen> {
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.0),
-        gradient: const LinearGradient(colors: [Colors.blueAccent, Colors.lightBlueAccent]),
-        boxShadow: [BoxShadow(color: Colors.blueAccent.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
+        gradient: const LinearGradient(colors: [Colors.green, Colors.teal]),
+        boxShadow: [BoxShadow(color: Colors.green.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ElevatedButton(
-        onPressed: _submitArticle,
+        onPressed: _isLoading ? null : _submitUpdate,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 18),
           backgroundColor: Colors.transparent, shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
         ),
-        child: const Text("Publikasikan Artikel", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        child: const Text("Simpan Perubahan", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }

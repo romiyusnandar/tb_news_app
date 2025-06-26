@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:my_berita/bloc/get_author_news_bloc.dart';
+import 'package:my_berita/bloc/login_bloc.dart';
 import 'package:my_berita/model/article_model.dart';
 import 'package:my_berita/screens/auth/login_screen.dart';
 import 'package:my_berita/screens/crud/create_news_screen.dart';
 import 'package:my_berita/screens/manage_news_screen.dart';
 import 'package:my_berita/screens/news_detail_screen.dart';
+import 'package:my_berita/screens/splash_screen.dart';
 import 'package:my_berita/widgets/home_widgets/article_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,6 +57,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    loginBloc.drainStream();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const SplashScreen()),
+          (route) => false,
+    );
+  }
+
+  Future<void> _onRefresh() async {
+    await getAuthorNewsBloc.getAuthorNews();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -102,17 +119,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildLoggedInView() {
-    return ListView(
-      children: [
-        _buildProfileHeader(),
-        _buildActionButtons(),
-        const SizedBox(height: 24),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text("Artikel anda", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-        ),
-        _buildMyArticlesList(),
-      ],
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: Colors.white,
+      backgroundColor: Colors.blueAccent,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          _buildProfileHeader(),
+          _buildActionButtons(),
+          const SizedBox(height: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text("Artikel Anda", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          ),
+          _buildMyArticlesList(),
+        ],
+      ),
     );
   }
 
@@ -138,6 +161,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
+          IconButton(
+            onPressed: _logout,
+            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            tooltip: 'Logout',
+          )
         ],
       ),
     );
@@ -148,9 +176,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
       child: Row(
         children: [
-          Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (c)=> CreateNewsScreen())), icon: const Icon(Icons.add, color: Colors.white,),label: const Text("Buat", style: TextStyle(fontSize: 16, color: Colors.white)), style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent))),
+          Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (c) => const CreateNewsScreen())), icon: const Icon(Icons.add, color: Colors.white), label: const Text("Buat", style: TextStyle(color: Colors.white)), style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, padding: const EdgeInsets.symmetric(vertical: 12)))),
           const SizedBox(width: 16),
-          Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (c)=> ManageNewsScreen())), icon: const Icon(Icons.edit_note, color: Colors.white,), label: const Text("Manage", style: TextStyle(color: Colors.white),), style: ElevatedButton.styleFrom(backgroundColor: Colors.green))),
+          Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (c) => const ManageNewsScreen())), icon: const Icon(Icons.edit_note, color: Colors.white), label: const Text("Manage", style: TextStyle(color: Colors.white)), style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(vertical: 12)))),
         ],
       ),
     );

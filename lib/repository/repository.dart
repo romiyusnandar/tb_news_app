@@ -24,7 +24,7 @@ class NewsRepository {
   }
 
   Future<ArticleResponse> getTrendingNews() async {
-    return getAllNews(page: 1, limit: 5);
+    return getAllNews(page: 1, limit: 10);
   }
 
   Future<ArticleResponse> getAuthorNews() async {
@@ -44,14 +44,32 @@ class NewsRepository {
 
       if (response.statusCode == 200 && response.data['body']['success'] == true) {
 
-        final List articlesJson = response.data['body']['data'];
+        if (response.data['body']['data'] == null || response.data['body']['data'] is! List) {
+          return ArticleResponse(
+            success: true,
+            articles: [],
+            message: response.data['body']['message'] ?? "Tidak ada artikel ditemukan.",
+            pagination: null,
+          );
+        }
 
+        final List articlesJson = response.data['body']['data'];
         final authorName = prefs.getString('user_name') ?? 'Penulis';
 
-        final List<Article> articlesWithAuthor = articlesJson.map((json) {
-          json['author_name'] = authorName;
-          return Article.fromJson(json);
-        }).toList();
+        final List<Article> articlesWithAuthor = [];
+
+        for (var json in articlesJson) {
+          try {
+            json['author_name'] = authorName;
+            articlesWithAuthor.add(Article.fromJson(json));
+          } catch (e, stackTrace) {
+            print("--- GAGAL MEMPROSES SATU ARTIKEL ---");
+            print("Error: $e");
+            print("Data JSON Bermasalah: $json");
+            print(stackTrace);
+            print("---------------------------------");
+          }
+        }
 
         return ArticleResponse(
           success: true,
@@ -68,8 +86,98 @@ class NewsRepository {
 
     } on DioException catch (e) {
       return ArticleResponse.withError(e.response?.data?['body']?['message'] ?? 'Gagal memuat artikel Anda.');
+    } catch (e, stackTrace) {
+      print("--- UNEXPECTED ERROR in getAuthorNews ---");
+      print(e);
+      print(stackTrace);
+      print("---------------------------------------");
+      return ArticleResponse.withError("Terjadi kesalahan: ${e.toString()}");
+    }
+  }
+
+  Future<Article> createArticle({
+    required String title,
+    required String summary,
+    required String content,
+    required String featuredImageUrl,
+    required String category,
+    required List<String> tags,
+    required bool isPublished,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null) {
+      throw Exception("Token tidak ditemukan, silakan login ulang.");
+    }
+
+    final data = {
+      'title': title,
+      'summary': summary,
+      'content': content,
+      'featuredImageUrl': featuredImageUrl,
+      'category': category,
+      'tags': tags,
+      'isPublished': isPublished,
+    };
+
+    try {
+      final options = Options(headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      Response response = await _dio.post(authorNewsUrl, data: data, options: options);
+      final responseBody = response.data['body'];
+
+      if (responseBody['success'] == true && responseBody['data'] != null) {
+        final articleJson = responseBody['data'] as Map<String, dynamic>;
+        final authorName = prefs.getString('user_name') ?? 'Saya';
+        final authorAvatar = prefs.getString('user_avatar') ?? '';
+        articleJson['author_name'] = authorName;
+        articleJson['author_avatar'] = authorAvatar;
+        return Article.fromJson(articleJson);
+      } else {
+        throw Exception(responseBody['message'] ?? 'Gagal membuat artikel.');
+      }
+
+    } on DioException catch (e) {
+      print("--- DIO ERROR on createArticle ---");
+      print("Status Code: ${e.response?.statusCode}");
+      print("Response Data: ${e.response?.data}");
+      print("Error Message: ${e.message}");
+      print("--------------------------------");
+      final errorMessage = e.response?.data?['body']?['message'] ?? 'Gagal membuat artikel. Periksa koneksi atau data Anda.';
+      throw Exception(errorMessage);
+
     } catch (e) {
-      return ArticleResponse.withError("Terjadi kesalahan yang tidak terduga.");
+      throw Exception('Terjadi kesalahan yang tidak terduga: $e');
+    }
+  }
+
+  Future<void> updateArticle(String articleId, Map<String, dynamic> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null) throw Exception("Token tidak ditemukan.");
+
+    try {
+      final options = _apiOptions.copyWith(headers: {'Authorization': 'Bearer $token'});
+      await _dio.put("$authorNewsUrl/$articleId", data: data, options: options);
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?['body']?['message'] ?? 'Gagal memperbarui artikel.');
+    }
+  }
+
+  Future<void> deleteArticle(String articleId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null) throw Exception("Token tidak ditemukan.");
+
+    try {
+      final options = _apiOptions.copyWith(headers: {'Authorization': 'Bearer $token'});
+      await _dio.delete("$authorNewsUrl/$articleId", options: options);
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?['body']?['message'] ?? 'Gagal menghapus artikel.');
     }
   }
 }
