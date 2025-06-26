@@ -95,6 +95,23 @@ class NewsRepository {
     }
   }
 
+  Future<Article> getArticleBySlug(String slug) async {
+    try {
+      final response = await _dio.get("$newsUrl/$slug", options: _apiOptions);
+
+      if (response.statusCode == 200 && response.data['body']['success'] == true) {
+        return Article.fromJson(response.data['body']['data']);
+      } else {
+        throw Exception(response.data['body']['message'] ?? 'Artikel tidak ditemukan.');
+      }
+    } on DioException catch (e) {
+      throw Exception('Gagal mengambil artikel: ${e.response?.data?['body']?['message'] ?? e.message}');
+    } catch (e) {
+      // Menangkap error lain jika terjadi masalah saat parsing JSON
+      throw Exception('Terjadi kesalahan tak terduga saat memproses data artikel.');
+    }
+  }
+
   Future<Article> createArticle({
     required String title,
     required String summary,

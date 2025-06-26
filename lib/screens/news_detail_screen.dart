@@ -40,8 +40,8 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
           stream: bookmarkBloc.stream,
           builder: (context, snapshot) {
             final bookmarkedIds = snapshot.data ?? [];
-            final isBookmarked = bookmarkedIds.contains(widget.article.id);
-            
+            final isBookmarked = bookmarkedIds.contains(widget.article.slug);
+
             return IconButton(
               icon: Icon(
                 isBookmarked ? Icons.bookmark : Icons.bookmark_border,
@@ -49,7 +49,7 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
                 size: 26,
               ),
               onPressed: () {
-                bookmarkBloc.toggleBookmark(widget.article.id);
+                bookmarkBloc.toggleBookmark(widget.article.slug);
               },
               tooltip: 'Bookmark',
             );
@@ -62,15 +62,15 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
           tag: widget.article.id,
           child: widget.article.featuredImageUrl != null && widget.article.featuredImageUrl!.isNotEmpty
               ? FadeInImage.assetNetwork(
-                  placeholder: 'assets/images/placeholder.png',
-                  image: widget.article.featuredImageUrl!,
-                  fit: BoxFit.cover,
-                  imageErrorBuilder: (c, o, s) => const Icon(Icons.broken_image, color: Colors.grey, size: 50),
-                )
+            placeholder: 'assets/images/placeholder.png',
+            image: widget.article.featuredImageUrl!,
+            fit: BoxFit.cover,
+            imageErrorBuilder: (c, o, s) => const Icon(Icons.broken_image, color: Colors.grey, size: 50),
+          )
               : Container(
-                  color: Colors.grey[800],
-                  child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
-                ),
+            color: Colors.grey[800],
+            child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
+          ),
         ),
       ),
     );
@@ -96,7 +96,7 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
             const SizedBox(height: 20),
             _buildAuthorInfo(),
             const Divider(color: Colors.white24, height: 40),
-            Text(widget.article.content, style: const TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 17.0, height: 1.7)),
+            Text(widget.article.content, style: const TextStyle(color: Colors.white, fontSize: 17.0, height: 1.7)),
             const SizedBox(height: 24),
             _buildTags(),
           ],

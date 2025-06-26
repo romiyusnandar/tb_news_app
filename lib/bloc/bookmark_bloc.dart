@@ -4,33 +4,38 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class BookmarkBloc {
   final BehaviorSubject<List<String>> _subject = BehaviorSubject<List<String>>.seeded([]);
-  
+  final String _bookmarkKey = 'bookmarked_article_slugs';
+
   BookmarkBloc() {
     loadBookmarks();
   }
 
   Stream<List<String>> get stream => _subject.stream;
-  List<String> get currentIds => _subject.value;
+  List<String> get currentSlugs => _subject.value;
 
   Future<void> loadBookmarks() async {
     final prefs = await SharedPreferences.getInstance();
-    final bookmarkedIds = prefs.getStringList('bookmarked_articles') ?? [];
-    _subject.sink.add(bookmarkedIds);
+    final bookmarkedSlugs = prefs.getStringList(_bookmarkKey) ?? [];
+    if (!_subject.isClosed) {
+      _subject.sink.add(bookmarkedSlugs);
+    }
   }
 
-  Future<void> toggleBookmark(String articleId) async {
-    final updatedBookmarks = List<String>.from(currentIds);
+  Future<void> toggleBookmark(String articleSlug) async {
+    final updatedBookmarks = List<String>.from(currentSlugs);
 
-    if (updatedBookmarks.contains(articleId)) {
-      updatedBookmarks.remove(articleId);
+    if (updatedBookmarks.contains(articleSlug)) {
+      updatedBookmarks.remove(articleSlug);
     } else {
-      updatedBookmarks.add(articleId);
+      updatedBookmarks.add(articleSlug);
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('bookmarked_articles', updatedBookmarks);
-    
-    _subject.sink.add(updatedBookmarks);
+    await prefs.setStringList(_bookmarkKey, updatedBookmarks);
+
+    if (!_subject.isClosed) {
+      _subject.sink.add(updatedBookmarks);
+    }
   }
 
   void dispose() {

@@ -87,7 +87,7 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF1C2833),
       appBar: AppBar(
-        title: const Text("Edit Artikel"),
+        title: const Text("Edit Artikel", style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF1A1A2E),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
